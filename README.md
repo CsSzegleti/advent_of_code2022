@@ -1,1 +1,1 @@
-# advent_of_code2022
+# This project contains the solutions for the Advent of Code 2022 event in Python
