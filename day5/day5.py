@@ -21,40 +21,29 @@ class StackManager:
     def load_state(self):
         self.stacks = copy.deepcopy(self.saved_state)
 
-    def add_one_to_stack(self, stack_num: int, cargo: str, bottom: bool = False):
+    def push_to_stack(self, stack_num: int, cargos: [str], bottom: bool = False):
         if stack_num not in self.stacks:
             self.stacks[stack_num] = []
 
-        if bottom:
-            self.stacks[stack_num].insert(0, cargo)
+        if bottom:  # only for initialization
+            self.stacks[stack_num].insert(0, cargos[0])
         else:
-            self.stacks[stack_num].append(cargo)
+            self.stacks[stack_num].extend(cargos)
 
-    def remove_one_from_stack(self, stack_num: int):
-        return self.stacks[stack_num].pop()
-
-    def add_bulk_to_stack(self, stack_num: int, cargos: [str]):
-        return self.stacks[stack_num].extend(cargos)
-
-    def remove_bulk_from_stack(self, stack_num: int, num_cargos: int):
+    def pop_from_stack(self, stack_num: int, num_cargos: int):
         cargos_to_remove = self.stacks[stack_num][- num_cargos:]
-
         del self.stacks[stack_num][- num_cargos:]
-
         return cargos_to_remove
 
-    def move_cargo_by_one(self, from_stack: int, to_stack: int):
-        self.add_one_to_stack(to_stack, self.remove_one_from_stack(from_stack))
-
-    def move_cargo_bulk(self, from_stack: int, to_stack: int, num_cargos: int):
-        self.add_bulk_to_stack(to_stack, self.remove_bulk_from_stack(from_stack, num_cargos))
+    def move_cargo(self, from_stack: int, to_stack: int, num_cargos: int):
+        self.push_to_stack(to_stack, self.pop_from_stack(from_stack, num_cargos))
 
     def interpret_command(self, command: Command):
         for i in range(command.num_pieces):
-            self.move_cargo_by_one(command.from_stack - 1, command.to_stack - 1)
+            self.move_cargo(command.from_stack - 1, command.to_stack - 1, 1)
 
     def interpret_command_bulk(self, command: Command):
-        self.move_cargo_bulk(command.from_stack - 1, command.to_stack - 1, command.num_pieces)
+        self.move_cargo(command.from_stack - 1, command.to_stack - 1, command.num_pieces)
 
     def get_top_stacks(self) -> str:
         tops = ''
@@ -74,7 +63,7 @@ def read_input(input_file_name: str, num_stacks: int):
             for i in range(num_stacks):
                 cargo = line[i * 4 + 1]
                 if cargo != ' ':
-                    stack_manager.add_one_to_stack(i, cargo, True)
+                    stack_manager.push_to_stack(i, [cargo], True)
             line = input_file.readline().strip()
 
         input_file.readline()
